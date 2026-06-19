@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Folder Uploader",
+  "version": "1.0",
+  "description": "Загружает локальные папки в выбранный GitHub-репозиторий в один коммит.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

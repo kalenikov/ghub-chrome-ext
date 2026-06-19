@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub Folder Uploader</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-container">
+        <svg class="github-icon" viewBox="0 0 16 16" width="24" height="24" aria-hidden="true">
+          <path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.35 3.12.88.01.47.01.84.01.93 0 .22-.16.47-.55.38A8.013 8.013 0 0 1 0 8c0-4.42 3.58-8 8-8z"></path>
+        </svg>
+        <h1>GitPush</h1>
+      </div>
+      <span class="subtitle">Быстрая загрузка папок в GitHub</span>
+    </header>
+
+    <main class="app-content">
+      <!-- Step 1: Token configuration -->
+      <section id="auth-section" class="card active">
+        <h2>1. Авторизация</h2>
+        <p class="description">Для работы расширения необходим Personal Access Token (PAT) с правами <code>repo</code>.</p>
+        <div class="input-group">
+          <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+          <button id="save-token-btn" class="btn btn-primary">Войти</button>
+        </div>
+        <div id="auth-error" class="status-msg error hidden"></div>
+      </section>
+
+      <!-- Step 2: Repository and Branch configuration -->
+      <section id="repo-section" class="card hidden">
+        <div class="card-header">
+          <h2>2. Репозиторий и Ветка</h2>
+          <button id="logout-btn" class="btn btn-text-danger" title="Выйти и очистить токен">Выйти</button>
+        </div>
+        <div class="input-group-vertical">
+          <div class="field">
+            <div class="field-header">
+              <label for="repo-select">Репозиторий</label>
+              <button id="refresh-repos-btn" class="btn-text" title="Обновить список репозиториев">Обновить</button>
+            </div>
+            <select id="repo-select">
+              <option value="" disabled selected>Загрузка репозиториев...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="branch-select">Ветка</label>
+            <select id="branch-select" disabled>
+              <option value="" disabled selected>Выберите репозиторий</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3: Folder selection and uploading -->
+      <section id="upload-section" class="card hidden">
+        <h2>3. Отправка файлов</h2>
+        
+        <div class="input-group-vertical">
+          <div class="field">
+            <label>Папка для загрузки</label>
+            <div class="folder-picker-wrapper">
+              <input type="file" id="folder-input" webkitdirectory directory multiple class="hidden-input" />
+              <label for="folder-input" class="folder-picker-btn">
+                <svg class="folder-icon" viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="currentColor" d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                </svg>
+                <span id="folder-picker-label">Выбрать папку</span>
+              </label>
+            </div>
+            <div id="file-count-info" class="file-info hidden">Выбрано файлов: 0</div>
+          </div>
+
+          <div class="field">
+            <label for="commit-message">Сообщение коммита</label>
+            <input type="text" id="commit-message" placeholder="Upload files via GitPush" value="Upload files via GitPush" />
+          </div>
+
+          <button id="upload-btn" class="btn btn-success" disabled>Загрузить на GitHub</button>
+        </div>
+      </section>
+
+      <!-- Progress and Status section -->
+      <section id="progress-section" class="card hidden">
+        <h2>Статус операции</h2>
+        <div class="progress-container">
+          <div class="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill"></div>
+          </div>
+          <span id="progress-text" class="progress-text">0%</span>
+        </div>
+        <div id="status-console" class="status-console"></div>
+      </section>
+
+      <!-- Success Screen -->
+      <section id="success-section" class="card hidden success-card">
+        <div class="success-icon-container">
+          <svg class="success-checkmark" viewBox="0 0 52 52">
+            <circle class="success-checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="success-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        <h3>Успешно отправлено!</h3>
+        <p id="success-commit-info">Файлы успешно загружены в репозиторий.</p>
+        <div class="success-actions">
+          <a id="view-repo-link" href="#" target="_blank" class="btn btn-primary">Открыть на GitHub</a>
+          <button id="back-btn" class="btn btn-secondary">Назад к отправке</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p class="proxy-note">
+        <svg viewBox="0 0 24 24" width="12" height="12" class="info-icon">
+          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        Использует системные настройки прокси браузера.
+      </p>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
